@@ -162,6 +162,284 @@ class BPSProduct(element.ProductBased):
         vol = self.calc_volume_from_ifc_shape()
         return vol
 
+    def get_space_opening_ratio(self, name):
+        """Get opening ratio of space. This is currently set by opening area /
+        gross area."""
+        gross_area = self.get_gross_floor_area(name)
+        opening_area = self.get_space_opening_area(name)
+        if gross_area == 0:
+            return 0
+        return opening_area / gross_area
+
+    def get_space_opening_ratio_per_floor_area(self, name):
+        """Get opening ratio per floor area of space. This is currently set by
+        opening ratio / floor area."""
+        opening_ratio = self.get_space_opening_ratio(name)
+        floor_area = self.get_space_gross_floor_area(name)
+        if floor_area == 0:
+            return 0
+        return opening_ratio / floor_area
+
+    def get_space_opening_ratio_per_net_floor_area(self, name):
+        """Get opening ratio per net floor area of space. This is currently set by
+        opening ratio / net floor area."""
+        opening_ratio = self.get_space_opening_ratio(name)
+        net_floor_area = self.get_space_net_floor_area(name)
+        if net_floor_area == 0:
+            return 0
+        return opening_ratio / net_floor_area
+
+class IfcCurtainWall(BPSProduct):
+    ifc_types = {
+        "IfcCurtainWall": ['*']
+    }
+
+    pattern_ifc_type = [
+        re.compile('CurtainWall', flags=re.IGNORECASE),
+        re.compile('Vorhangfassade', flags=re.IGNORECASE),
+        re.compile('Fassade', flags=re.IGNORECASE),
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def calc_cost_group(self) -> int:
+        """Calc cost group for Curtain Walls
+
+        Load bearing: 331
+        Not load bearing: 332
+        """
+        if self.is_load_bearing:
+            return 331
+        elif not self.is_load_bearing:
+            return 332
+        else:
+            return 300
+
+    @cached_property
+    def is_load_bearing(self) -> bool:
+        """determines if a curtain wall is load bearing or not"""
+        if hasattr(self, 'ifc'):
+            if hasattr(self.ifc, 'IsLoadBearing'):
+                return self.ifc.IsLoadBearing
+        return False
+
+    @cached_property
+    def opening_area(self):
+        """get sum of opening areas of the curtain wall"""
+        if hasattr(self, 'opening_bounds'):
+            return sum(opening_boundary.bound_area for opening_boundary
+                     in self.opening_bounds)
+        return 0 * ureg.meter ** 2
+
+    @cached_property
+    def net_bound_area(self):
+        """get net bound area of the curtain wall"""
+        return self.gross_area - self.opening_area
+
+    @cached_property
+    def gross_area(self):
+        """get gross bound area of the curtain wall"""
+        if hasattr(self, 'bound_shape'):
+            return PyOCCTools.get_shape_volume(self.bound_shape) * ureg.meter ** 2
+        return 0 * ureg.meter ** 2
+
+    @cached_property
+    def bound_shape(self):
+        """get the shape of the curtain wall"""
+        settings = ifcopenshell.geom.main.settings()
+        settings.set(settings.USE_PYTHON_OPENCASCADE, True)
+        settings.set(settings.USE_WORLD_COORDS, True)
+        settings.set(settings.EXCLUDE_SOLIDS_AND_SURFACES, False)
+        settings.set(settings.INCLUDE_CURVES, True)
+        return ifcopenshell.geom.create_shape(settings, self.ifc).geometry
+
+    @cached_property
+    def bound_center(self):
+        """get the center of the bounding box of the curtain wall shape"""
+        bbox = Bnd_Box()
+        brepbndlib_Add(self.bound_shape, bbox)
+        bbox_center = ifcopenshell.geom.utils.get_bounding_box_center(bbox)
+        return bbox_center
+
+    def get_space_shape_volume(self, name):
+        """
+        This function returns the volume of a space shape
+        """
+        return PyOCCTools.get_shape_volume(self.space_shape)
+
+
+    def get_space_volume(self, name):
+        """Get volume of space. This is currently set by sum of all
+        horizontal gross area and multiply by height."""
+        leveled_areas = {}
+        for height, sbs in self.horizontal_sbs.items():
+            if height not in leveled_areas:
+                leveled_areas[height] = 0
+            leveled_areas[height] += sum([sb.bound_area for sb in sbs])
+
+        return sum([area * height for area, height in leveled_areas.items()])
+
+    def get_net_space_volume(self, name):
+        """Get net volume of space. This is currently set by sum of all
+        horizonal net area and multiply by height."""
+        leveled_areas = {}
+        for height, sbs in self.horizontal_sbs.items():
+            if height not in leveled_areas:
+                leveled_areas[height] = 0
+            leveled_areas[height] += sum([sb.net_bound_area for sb in sbs])
+
+        return sum([area * height for area, height in leveled_areas.items()])
+
+    def get_space_height(self, name):
+        """Get height of space. This is currently set by max height of all
+        horizontal space boundaries."""
+        return max([sb.height for sb in self.horizontal_sbs.values()])
+
+    def get_space_width(self, name):
+        """Get width of space. This is currently set by max width of all
+        horizontal space boundaries."""
+        return max([sb.width for sb in self.horizontal_sbs.values()])
+
+    def get_space_length(self, name):
+        """Get length of space. This is currently set by max length of all
+        horizontal space boundaries."""
+        return max([sb.length for sb in self.horizontal_sbs.values()])
+
+    def get_space_aspect_ratio(self, name):
+        """Get aspect ratio of space. This is currently set by width / length."""
+        width = self.get_space_width(name)
+        length = self.get_space_length(name)
+        if length == 0:
+            return 0
+        return width / length
+
+    def get_space_orientation(self, name):
+        """Get orientation of space. This is currently set by orientation of
+        horizontal space boundaries."""
+        orientations = [sb.orientation for sb in self.horizontal_sbs.values()]
+        return max(set(orientations), key=orientations.count)
+
+    def get_space_top_bottom(self, name):
+        """Get top bottom of space. This is currently set by top bottom of
+        horizontal space boundaries."""
+        top_bottoms = [sb.top_bottom for sb in self.horizontal_sbs.values()]
+        return max(set(top_bottoms), key=top_bottoms.count)
+
+    def get_space_opening_area(self, name):
+        """Get opening area of space. This is currently set by sum of all
+        opening areas of horizontal space boundaries."""
+        return sum([sb.opening_area for sb in self.horizontal_sbs.values()])
+
+    def get_space_opening_ratio(self, name):
+        """Get opening ratio of space. This is currently set by opening area /
+        gross area."""
+        gross_area = self.get_gross_floor_area(name)
+        opening_area = self.get_space_opening_area(name)
+        if gross_area == 0:
+            return 0
+        return opening_area / gross_area
+
+    def get_space_gross_floor_area(self, name):
+        """Get gross floor area of space. This is currently set by sum of all
+        gross areas of horizontal space boundaries."""
+        return sum([sb.gross_area for sb in self.horizontal_sbs.values()])
+
+    def get_space_net_floor_area(self, name):
+        """Get net floor area of space. This is currently set by sum of all
+        net areas of horizontal space boundaries."""
+        return sum([sb.net_area for sb in self.horizontal_sbs.values()])
+
+    def get_space_volume_per_floor_area(self, name):
+        """Get volume per floor area of space. This is currently set by volume /
+        gross floor area."""
+        volume = self.get_space_volume(name)
+        gross_floor_area = self.get_space_gross_floor_area(name)
+        if gross_floor_area == 0:
+            return 0
+        return volume / gross_floor_area
+
+    def get_space_net_volume_per_floor_area(self, name):
+        """Get net volume per floor area of space. This is currently set by net
+        volume / net floor area."""
+        net_volume = self.get_net_space_volume(name)
+        net_floor_area = self.get_space_net_floor_area(name)
+        if net_floor_area == 0:
+            return 0
+        return net_volume / net_floor_area
+
+    def get_space_volume_per_height(self, name):
+        """Get volume per height of space. This is currently set by volume /
+        height."""
+        volume = self.get_space_volume(name)
+        height = self.get_space_height(name)
+        if height == 0:
+            return 0
+        return volume / height
+
+    def get_space_net_volume_per_height(self, name):
+        """Get net volume per height of space. This is currently set by net
+        volume / height."""
+        net_volume = self.get_net_space_volume(name)
+        height = self.get_space_height(name)
+        if height == 0:
+            return 0
+        return net_volume / height
+
+    def get_space_floor_area_per_height(self, name):
+        """Get floor area per height of space. This is currently set by floor
+        area / height."""
+        floor_area = self.get_space_gross_floor_area(name)
+        height = self.get_space_height(name)
+        if height == 0:
+            return 0
+        return floor_area / height
+
+    def get_space_net_floor_area_per_height(self, name):
+        """Get net floor area per height of space. This is currently set by net
+        floor area / height."""
+        net_floor_area = self.get_space_net_floor_area(name)
+        height = self.get_space_height(name)
+        if height == 0:
+            return 0
+        return net_floor_area / height
+
+    def get_space_opening_area_per_floor_area(self, name):
+        """Get opening area per floor area of space. This is currently set by
+        opening area / floor area."""
+        opening_area = self.get_space_opening_area(name)
+        floor_area = self.get_space_gross_floor_area(name)
+        if floor_area == 0:
+            return 0
+        return opening_area / floor_area
+
+    def get_space_opening_area_per_net_floor_area(self, name):
+        """Get opening area per net floor area of space. This is currently set by
+        opening area / net floor area."""
+        opening_area = self.get_space_opening_area(name)
+        net_floor_area = self.get_space_net_floor_area(name)
+        if net_floor_area == 0:
+            return 0
+        return opening_area / net_floor_area
+
+    def get_space_opening_ratio_per_floor_area(self, name):
+        """Get opening ratio per floor area of space. This is currently set by
+        opening ratio / floor area."""
+        opening_ratio = self.get_space_opening_ratio(name)
+        floor_area = self.get_space_gross_floor_area(name)
+        if floor_area == 0:
+            return 0
+        return opening_ratio / floor_area
+
+    def get_space_opening_ratio_per_net_floor_area(self, name):
+        """Get opening ratio per net floor area of space. This is currently set by
+        opening ratio / net floor area."""
+        opening_ratio = self.get_space_opening_ratio(name)
+        net_floor_area = self.get_space_net_floor_area(name)
+        if net_floor_area == 0:
+            return 0
+        return opening_ratio / net_floor_area
+
     def calc_volume_from_ifc_shape(self):
         # todo use more efficient iterator to calc all shapes at once
         #  with multiple cores:
