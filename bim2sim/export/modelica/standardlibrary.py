@@ -1,8 +1,9 @@
 ﻿"""Modul containing model representations from the Modelica Standard Library"""
+import bim2sim.elements.aggregation.hvac_aggregations
 from bim2sim.export import modelica
-from bim2sim.kernel import aggregation
-from bim2sim.kernel.elements import hvac
-from bim2sim.kernel.units import ureg
+from bim2sim.elements import hvac_elements as hvac
+from bim2sim.elements import aggregation
+from bim2sim.elements.mapping.units import ureg
 
 
 class StandardLibrary(modelica.Instance):
@@ -12,7 +13,8 @@ class StandardLibrary(modelica.Instance):
 
 class StaticPipe(StandardLibrary):
     path = "Modelica.Fluid.Pipes.StaticPipe"
-    represents = [hvac.Pipe, hvac.PipeFitting, aggregation.PipeStrand]
+    represents = [hvac.Pipe, hvac.PipeFitting,
+                  bim2sim.elements.aggregation.hvac_aggregations.PipeStrand]
 
     def __init__(self, element):
         self.check_length = self.check_numeric(min_value=0 * ureg.meter)
@@ -21,7 +23,8 @@ class StaticPipe(StandardLibrary):
 
     def request_params(self):
         self.request_param("length", self.check_length)
-        self.request_param("diameter", self.check_diameter)
+        # self.request_param("diameter", self.check_diameter, export=False)
+        self.request_param('diameter', self.check_diameter)
 
     def get_port_name(self, port):
         # try:

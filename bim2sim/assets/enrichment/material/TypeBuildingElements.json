@@ -34,6 +34,121 @@
             }
         }
     },
+    "CurtainWall_[0, 2015]_Typical": {
+        "building_age_group": [
+            0,
+            2015
+        ],
+        "construction_type": "Typical",
+        "inner_radiation": 5.0,
+        "inner_convection": 2.7,
+        "outer_radiation": 5.0,
+        "outer_convection": 20.0,
+        "layer": {
+            "0": {
+                "thickness": 0.024,
+                "material": {
+                    "name": "glass",
+                    "material_id": "0abb8aa3-83ff-11e6-bfa4-2cd444b2e706"
+                }
+            },
+            "1": {
+                "thickness": 0.0125,
+                "material": {
+                    "name": "aluminium",
+                    "material_id": "6bd7d77e-3a43-11e7-8488-2cd444b2e704"
+                }
+            }
+        }
+    },
+    "CurtainWall_[0, 2015]_Heavy": {
+        "building_age_group": [
+            0,
+            2015
+        ],
+        "construction_type": "Heavy",
+        "inner_radiation": 5.0,
+        "inner_convection": 2.7,
+        "outer_radiation": 5.0,
+        "outer_convection": 20.0,
+        "layer": {
+            "0": {
+                "thickness": 0.024,
+                "material": {
+                    "name": "glass",
+                    "material_id": "0abb8aa3-83ff-11e6-bfa4-2cd444b2e706"
+                }
+            },
+            "1": {
+                "thickness": 0.0125,
+                "material": {
+                    "name": "steel",
+                    "material_id": "6bd7d77e-3a43-11e7-8488-2cd444b2e705"
+                }
+            }
+        }
+    },
+    "CurtainWall_[0, 2015]_Light": {
+        "building_age_group": [
+            0,
+            2015
+        ],
+        "construction_type": "Light",
+        "inner_radiation": 5.0,
+        "inner_convection": 2.7,
+        "outer_radiation": 5.0,
+        "outer_convection": 20.0,
+        "layer": {
+            "0": {
+                "thickness": 0.024,
+                "material": {
+                    "name": "glass",
+                    "material_id": "0abb8aa3-83ff-11e6-bfa4-2cd444b2e706"
+                }
+            },
+            "1": {
+                "thickness": 0.0125,
+                "material": {
+                    "name": "plastic",
+                    "material_id": "6bd7d77e-3a43-11e7-8488-2cd444b2e706"
+                }
+            }
+        }
+    },
+    "CurtainWall_[0, 2015]_Insulated": {
+        "building_age_group": [
+            0,
+            2015
+        ],
+        "construction_type": "Insulated",
+        "inner_radiation": 5.0,
+        "inner_convection": 2.7,
+        "outer_radiation": 5.0,
+        "outer_convection": 20.0,
+        "layer": {
+            "0": {
+                "thickness": 0.024,
+                "material": {
+                    "name": "glass",
+                    "material_id": "0abb8aa3-83ff-11e6-bfa4-2cd444b2e706"
+                }
+            },
+            "1": {
+                "thickness": 0.0125,
+                "material": {
+                    "name": "insulation",
+                    "material_id": "6bd7d77e-3a43-11e7-8488-2cd444b2e707"
+                }
+            },
+            "2": {
+                "thickness": 0.0125,
+                "material": {
+                    "name": "aluminium",
+                    "material_id": "6bd7d77e-3a43-11e7-8488-2cd444b2e704"
+                }
+            }
+        }
+    },
     "OuterWall_[0, 1918]_light": {
         "building_age_group": [
             0,
@@ -3089,38 +3204,6 @@
                 "material": {
                     "name": "wooden_beams_with_insulation",
                     "material_id": "6d473498-3a43-11e7-83d8-2cd444b2e704"
-                }
-            }
-        }
-    },
-    "Slab_[0, 2015]_typical": {
-        "building_age_group": [
-            0,
-            2015
-        ],
-        "construction_type": "typical",
-        "inner_radiation": 5.0,
-        "inner_convection": 1.7000000000000002,
-        "layer": {
-            "0": {
-                "thickness": 0.04,
-                "material": {
-                    "name": "cement_floating_screed_2_bottom",
-                    "material_id": "6755e6e6-3a43-11e7-adad-2cd444b2e704"
-                }
-            },
-            "1": {
-                "thickness": 0.06,
-                "material": {
-                    "name": "EPS_040_15",
-                    "material_id": "25d281da-3a43-11e7-8191-2cd444b2e704"
-                }
-            },
-            "2": {
-                "thickness": 0.16,
-                "material": {
-                    "name": "concrete_CEM_II_BS325R_wz05",
-                    "material_id": "253f8030-3a43-11e7-8735-2cd444b2e704"
                 }
             }
         }
