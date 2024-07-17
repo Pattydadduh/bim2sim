@@ -24,6 +24,17 @@
       "gross_volume": ["BaseQuantities", "GrossVolume"]
     }
   },
+  "CurtainWall":{
+    "default_ps": {
+      "net_area": ["BaseQuantities", "NetSideArea"],
+      "gross_area": ["BaseQuantities", "GrossSideArea"],
+      "width": ["BaseQuantities", "Width"],
+      "height": ["BaseQuantities", "Height"],
+      "tilt": ["ArchiCADProperties", "\u00c4u\u00dferer Neigungswinkel"],
+      "net_volume": ["BaseQuantities", "NetVolume"],
+      "gross_volume": ["BaseQuantities", "GrossVolume"]
+    }
+  },
   "InnerWall": {
     "default_ps": {
       "net_area": ["BaseQuantities", "NetSideArea"],
