@@ -24,14 +24,13 @@
   },
   "OuterCurtainWall":{
     "default_ps": {
-      "net_area": ["Abmessungen", "Fl\u00e4che"]
+      "net_area": ["Abmessungen", "Fl\u00e4che"],
+      "glass_area": ["Konstruktion", "Glasflaeche"],
+      "g_value": ["Analytische Eigenschaften (type)", "Gesamtenergiedurchlassgrad"],
+      "glass_thickness": ["Konstruktion(type)", "Glasst\u00e4rke"]
     }
   },
-  "InnerCurtainWall":{
-    "default_ps": {
-      "net_area": ["Abmessungen", "Fl\u00e4che"]
-    }
-  },
+
   "OuterWall": {
     "default_ps": {
       "net_area": ["Abmessungen", "Fl\u00e4che"]
